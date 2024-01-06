@@ -1,0 +1,43 @@
+name: terraform
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "masry"
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Terraform setup
+      uses: hashicorp/setup-terraform@v2
+    - name: Terraform Init
+      working-directory: ./terraform/
+      run:  |
+          terraform init -reconfigure \
+            -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY }}" \
+            -backend-config="secret_key=${{ secrets.AWS_SECRET_KEY }}"
+    - name: Terraform Validate
+      working-directory: ./terraform/
+      run: terraform validate -no-color
+    - name: Terraform Formating Check
+      run: |
+        terraform fmt -recursive -check
+    - name: Terraform Plan
+      working-directory: ./terraform/
+      run: |
+          terraform plan -no-color -var-file=environment/sandbox.tfvars \
+            -var "access_key=${{ secrets.AWS_ACCESS_KEY }}" \
+            -var "secret_key=${{ secrets.AWS_SECRET_KEY }}"
+    - name: Terraform Apply
+      working-directory: ./terraform/
+      run: |
+          terraform apply  -auto-approve -no-color -var-file=environment/sandbox.tfvars \
+            -var "access_key=${{ secrets.AWS_ACCESS_KEY }}" \
+            -var "secret_key=${{ secrets.AWS_SECRET_KEY }}"
