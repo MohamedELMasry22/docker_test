@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - "masry"
+      - "main"
 
 permissions:
   contents: read
